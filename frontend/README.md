@@ -25,11 +25,13 @@ npm install
 ## Configuration
 
 1. Copy `.env.example` to `.env`:
+
 ```bash
 cp .env.example .env
 ```
 
 2. Update variables if needed:
+
 ```env
 VITE_API_URL=http://localhost:5000/api
 ```
@@ -82,7 +84,3 @@ email
 john@example.com
 jane@example.com
 ```
-
-## License
-
-MIT

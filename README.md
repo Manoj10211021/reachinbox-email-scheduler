@@ -8,6 +8,7 @@ A production-grade full-stack email scheduling system with intelligent rate limi
 ## ✨ Features
 
 ### 🚀 Core Functionality
+
 - **Smart Email Scheduling**: Schedule emails with custom delays and start times
 - **Bulk CSV Upload**: Upload recipient lists via CSV files for mass campaigns
 - **Rate Limiting**: Intelligent hourly rate limiting with automatic rescheduling
@@ -16,12 +17,14 @@ A production-grade full-stack email scheduling system with intelligent rate limi
 - **Real-time Tracking**: Monitor scheduled, sent, and failed emails in real-time
 
 ### 🎨 User Experience
+
 - **Modern UI**: Professional gradient-based design with smooth animations
 - **Google OAuth**: Secure authentication via Google OAuth 2.0
 - **Responsive Dashboard**: Mobile-friendly interface with real-time stats
 - **Manual Refresh**: Control when to update dashboard statistics
 
 ### 🛠️ Technical Features
+
 - **TypeScript**: Full type safety across frontend and backend
 - **MongoDB**: NoSQL database for flexible email tracking
 - **Redis + BullMQ**: Distributed job queue with retry logic
@@ -34,6 +37,7 @@ A production-grade full-stack email scheduling system with intelligent rate limi
 ## 🛠️ Tech Stack
 
 ### Backend
+
 - **Node.js** + **Express.js** - REST API server
 - **TypeScript** - Type-safe development
 - **MongoDB** + **TypeORM** - Database and ORM
@@ -43,6 +47,7 @@ A production-grade full-stack email scheduling system with intelligent rate limi
 - **Winston** - Logging
 
 ### Frontend
+
 - **React 18** - UI library
 - **TypeScript** - Type safety
 - **Vite** - Build tool
@@ -59,6 +64,7 @@ A production-grade full-stack email scheduling system with intelligent rate limi
 - **Git**
 
 Required services:
+
 1. **MongoDB Atlas** - [Sign up](https://www.mongodb.com/cloud/atlas/register)
 2. **Upstash Redis** - [Sign up](https://upstash.com/)
 3. **Google Cloud Console** - [Console](https://console.cloud.google.com/)
@@ -84,6 +90,7 @@ cd ../frontend && npm install
 ### 2. Configure Environment
 
 **Backend** (`backend/.env`):
+
 ```env
 PORT=5000
 FRONTEND_URL=http://localhost:3000
@@ -100,6 +107,7 @@ SMTP_PASS=your-app-password
 ```
 
 **Frontend** (`frontend/.env`):
+
 ```env
 VITE_API_URL=http://localhost:5000/api
 ```
@@ -126,11 +134,13 @@ Visit http://localhost:3000
 ### Authentication
 
 #### Login
+
 ```http
 GET /api/auth/google
 ```
 
 #### Get Current User
+
 ```http
 GET /api/auth/me
 ```
@@ -138,6 +148,7 @@ GET /api/auth/me
 ### Emails
 
 #### Schedule Emails
+
 ```http
 POST /api/emails/schedule
 Content-Type: application/json
@@ -153,11 +164,13 @@ Content-Type: application/json
 ```
 
 #### Get Emails
+
 ```http
 GET /api/emails?status=SCHEDULED&limit=50
 ```
 
 #### Get Stats
+
 ```http
 GET /api/emails/stats
 ```
@@ -231,23 +244,28 @@ email-scheduler/
 ## 🐛 Troubleshooting
 
 **MongoDB connection fails**
+
 - Verify IP whitelist
 - Check URL encoding of password
 
 **Redis connection fails**
+
 - Use `rediss://` (double 's')
 - Verify credentials
 
 **OAuth not working**
+
 - Match redirect URI exactly
 - Check callback URL in `.env`
 
 **Emails not sending**
+
 - Gmail: Use App Password
 - Check SMTP credentials
 - View logs for errors
 
 **Dashboard not updating**
+
 - Click manual "Refresh" button
 - Check browser console
 - Verify backend is running
@@ -266,6 +284,7 @@ email-scheduler/
 ## 🚀 Deployment
 
 ### Heroku (Backend)
+
 ```bash
 heroku create
 heroku config:set NODE_ENV=production
@@ -275,6 +294,7 @@ heroku ps:scale worker=1
 ```
 
 ### Vercel (Frontend)
+
 ```bash
 cd frontend
 vercel
@@ -290,19 +310,3 @@ vercel
 - Enable HTTPS in production
 - Rotate credentials regularly
 - Use App Passwords for Gmail
-
----
-
-## 📄 License
-
-MIT License - See [LICENSE](LICENSE)
-
----
-
-## 👨‍💻 Author
-
-Built with ❤️ for scalable email campaigns
-
----
-
-**Happy Scheduling! 📧✨**
