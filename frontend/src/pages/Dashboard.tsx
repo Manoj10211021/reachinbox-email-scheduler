@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { emailApi } from '../api/email';
-import { EmailStats, Email } from '../types';
-import StatsCards from '../components/StatsCards';
-import ComposeEmail from '../components/ComposeEmail';
-import EmailsTable from '../components/EmailsTable';
-import Header from '../components/Header';
-import InfoBanner from '../components/InfoBanner';
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+import { emailApi } from "../api/email";
+import { EmailStats, Email } from "../types";
+import StatsCards from "../components/StatsCards";
+import ComposeEmail from "../components/ComposeEmail";
+import EmailsTable from "../components/EmailsTable";
+import Header from "../components/Header";
+import InfoBanner from "../components/InfoBanner";
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -14,8 +14,8 @@ const Dashboard: React.FC = () => {
   const [scheduledEmails, setScheduledEmails] = useState<Email[]>([]);
   const [sentEmails, setSentEmails] = useState<Email[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'compose' | 'scheduled' | 'sent'>(
-    'compose'
+  const [activeTab, setActiveTab] = useState<"compose" | "scheduled" | "sent">(
+    "compose",
   );
 
   const fetchData = async () => {
@@ -23,17 +23,27 @@ const Dashboard: React.FC = () => {
       setLoading(true);
       const [statsData, scheduledData, sentData] = await Promise.all([
         emailApi.getStats(),
-        emailApi.getEmails({ status: 'SCHEDULED', limit: 50 }),
-        emailApi.getEmails({ status: 'SENT', limit: 50 }),
+        emailApi.getEmails({ status: "SCHEDULED", limit: 50 }),
+        emailApi.getEmails({ status: "SENT", limit: 50 }),
       ]);
 
       setStats(statsData);
       setScheduledEmails(scheduledData.emails);
       setSentEmails(sentData.emails);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error("Error fetching data:", error);
       // Set empty data on error to prevent infinite loops
-      if (!stats) setStats({ total: 0, scheduled: 0, sent: 0, failed: 0, pending: 0 });
+      if (!stats) {
+        setStats({
+          total: 0,
+          scheduled: 0,
+          sent: 0,
+          failed: 0,
+          pending: 0,
+          remainingThisHour: 0,
+          hourlyLimit: 100,
+        });
+      }
       if (scheduledEmails.length === 0) setScheduledEmails([]);
       if (sentEmails.length === 0) setSentEmails([]);
     } finally {
@@ -48,7 +58,7 @@ const Dashboard: React.FC = () => {
 
   const handleEmailScheduled = () => {
     fetchData();
-    setActiveTab('scheduled');
+    setActiveTab("scheduled");
   };
 
   if (loading) {
@@ -79,7 +89,7 @@ const Dashboard: React.FC = () => {
             className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             <svg
-              className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`}
+              className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
@@ -104,20 +114,20 @@ const Dashboard: React.FC = () => {
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex" aria-label="Tabs">
               <TabButton
-                active={activeTab === 'compose'}
-                onClick={() => setActiveTab('compose')}
+                active={activeTab === "compose"}
+                onClick={() => setActiveTab("compose")}
               >
                 Compose Email
               </TabButton>
               <TabButton
-                active={activeTab === 'scheduled'}
-                onClick={() => setActiveTab('scheduled')}
+                active={activeTab === "scheduled"}
+                onClick={() => setActiveTab("scheduled")}
               >
                 Scheduled ({scheduledEmails.length})
               </TabButton>
               <TabButton
-                active={activeTab === 'sent'}
-                onClick={() => setActiveTab('sent')}
+                active={activeTab === "sent"}
+                onClick={() => setActiveTab("sent")}
               >
                 Sent ({sentEmails.length})
               </TabButton>
@@ -125,17 +135,17 @@ const Dashboard: React.FC = () => {
           </div>
 
           <div className="p-6">
-            {activeTab === 'compose' && (
+            {activeTab === "compose" && (
               <ComposeEmail onSuccess={handleEmailScheduled} />
             )}
-            {activeTab === 'scheduled' && (
+            {activeTab === "scheduled" && (
               <EmailsTable
                 emails={scheduledEmails}
                 title="Scheduled Emails"
                 onRefresh={fetchData}
               />
             )}
-            {activeTab === 'sent' && (
+            {activeTab === "sent" && (
               <EmailsTable
                 emails={sentEmails}
                 title="Sent Emails"
@@ -160,8 +170,8 @@ const TabButton: React.FC<{
       px-6 py-3 text-sm font-medium border-b-2 transition-colors
       ${
         active
-          ? 'border-primary-500 text-primary-600'
-          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+          ? "border-primary-500 text-primary-600"
+          : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
       }
     `}
   >
