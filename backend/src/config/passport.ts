@@ -40,6 +40,7 @@ passport.use(
 );
 
 passport.serializeUser((user: any, done) => {
+  console.info('[auth] serializing user', { userId: user._id?.toString() });
   done(null, user._id.toString());
 });
 
@@ -49,8 +50,10 @@ passport.deserializeUser(async (id: string, done) => {
     const user = await userRepository.findOne({ 
       where: { _id: new ObjectId(id) } as any 
     });
+    console.info('[auth] deserialized user', { userId: id, found: Boolean(user) });
     done(null, user);
   } catch (error) {
+    console.error('[auth] user deserialization failed', { userId: id, error });
     done(error);
   }
 });

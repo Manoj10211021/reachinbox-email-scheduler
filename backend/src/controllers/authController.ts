@@ -12,7 +12,30 @@ export const googleAuthCallback = (
 ) => {
   passport.authenticate('google', {
     failureRedirect: `${process.env.FRONTEND_URL}/login?error=auth_failed`,
-    successRedirect: `${process.env.FRONTEND_URL}/dashboard`,
+  }, (error: Error | null, user: Express.User | false) => {
+    if (error) {
+      return next(error);
+    }
+
+    if (!user) {
+      return res.redirect(`${process.env.FRONTEND_URL}/login?error=auth_failed`);
+    }
+
+    req.logIn(user, (loginError) => {
+      if (loginError) {
+        return next(loginError);
+      }
+
+      req.session.save((saveError) => {
+        if (saveError) {
+          console.error('[auth] session save failed', saveError);
+          return next(saveError);
+        }
+
+        console.info('[auth] session saved', { sessionID: req.sessionID });
+        res.redirect(`${process.env.FRONTEND_URL}/dashboard`);
+      });
+    });
   })(req, res, next);
 };
 
@@ -32,6 +55,12 @@ export const logout = (req: Request, res: Response) => {
 };
 
 export const getCurrentUser = (req: Request, res: Response) => {
+  console.info('[auth/me]', {
+    sessionID: req.sessionID,
+    hasPassportSession: Boolean((req.session as any)?.passport),
+    isAuthenticated: req.isAuthenticated(),
+  });
+
   if (req.isAuthenticated() && req.user) {
     const user = req.user as any;
     res.json({
