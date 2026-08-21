@@ -1,128 +1,165 @@
-# ReachInbox Email Scheduler
+# 📧 ReachInbox Email Scheduler
 
-A full-stack email scheduling system built as part of the ReachInbox
-Software Development Intern assignment.
+A full-stack email scheduling system built as part of the **ReachInbox Software Development Intern Hiring Assignment**.
 
-The application allows users to authenticate using Google, compose email
-campaigns, upload recipient lists through CSV files, schedule emails for
-future delivery, and monitor scheduled and sent emails through a dashboard.
+The application provides a reliable email scheduling workflow where users can authenticate using Google, upload a list of recipients, compose email campaigns, schedule emails for a future time, and monitor scheduled and sent emails from a dashboard.
 
-The backend uses BullMQ and Redis for persistent job scheduling and a
-dedicated worker for email processing.
+The backend uses **BullMQ + Redis** for persistent job scheduling and a dedicated worker process for email delivery through **Ethereal Email SMTP**.
 
 ---
 
-## Features
+# 📌 Table of Contents
 
-### Authentication
-
-- Google OAuth 2.0 login
-- User information displayed in the dashboard
-- Session-based authentication
-- Logout functionality
-
-### Email Scheduling
-
-- Schedule emails for a specific future time
-- Upload recipient email addresses using CSV files
-- Configure delay between individual emails
-- Configure hourly email sending limits
-- Store email records in PostgreSQL
-- Use BullMQ delayed jobs for scheduling
-- Dedicated worker process for sending emails
-
-### Email Delivery
-
-- Ethereal Email SMTP for testing
-- Nodemailer for SMTP communication
-- Email delivery status tracking
-- Ethereal preview URLs for sent emails
-
-### Queue & Reliability
-
-- Redis-backed BullMQ queue
-- Configurable worker concurrency
-- Delayed BullMQ jobs instead of cron jobs
-- Jobs remain in Redis when the application server restarts
-- Worker can be restarted independently from the API server
-
-### Dashboard
-
-- Scheduled Emails view
-- Sent Emails view
-- Email status tracking
-- Compose New Email interface
-- CSV recipient upload
-- Loading and empty states
-- Basic error handling
+- [Overview](#-overview)
+- [Assignment Requirements](#-assignment-requirements)
+- [Features](#-features)
+- [Technology Stack](#-technology-stack)
+- [System Architecture](#-system-architecture)
+- [Application Flow](#-application-flow)
+- [Project Structure](#-project-structure)
+- [Prerequisites](#-prerequisites)
+- [Local Development Setup](#-local-development-setup)
+- [PostgreSQL Setup](#-postgresql-setup)
+- [Redis / Memurai Setup](#-redis--memurai-setup)
+- [Ethereal Email Setup](#-ethereal-email-setup)
+- [Google OAuth Setup](#-google-oauth-setup)
+- [Environment Variables](#-environment-variables)
+- [Backend Setup](#-backend-setup)
+- [Worker Setup](#-worker-setup)
+- [Frontend Setup](#-frontend-setup)
+- [Running the Complete Application](#-running-the-complete-application)
+- [Email Scheduling Flow](#-email-scheduling-flow)
+- [BullMQ and Redis](#-bullmq-and-redis)
+- [Database Persistence](#-database-persistence)
+- [Rate Limiting](#-rate-limiting)
+- [Email Delay](#-email-delay)
+- [Worker Concurrency](#-worker-concurrency)
+- [Restart Recovery](#-restart-recovery)
+- [Idempotency](#-idempotency)
+- [CSV Upload](#-csv-upload)
+- [Authentication](#-authentication)
+- [API Documentation](#-api-documentation)
+- [Frontend Dashboard](#-frontend-dashboard)
+- [Testing](#-testing)
+- [Demo Video](#-demo-video)
+- [Troubleshooting](#-troubleshooting)
+- [Security](#-security)
+- [Assumptions and Trade-offs](#-assumptions-and-trade-offs)
+- [Assignment Requirement Mapping](#-assignment-requirement-mapping)
+- [Future Improvements](#-future-improvements)
+- [Author](#-author)
 
 ---
 
-# Tech Stack
+# 📌 Overview
 
-## Backend
+ReachInbox is a platform focused on cold email outreach and lead engagement.
 
-- Node.js
-- TypeScript
+This project implements a small-scale version of the email scheduling infrastructure required for reliable email delivery.
+
+The application consists of three main parts:
+
+1. **React frontend**
+   - Google login
+   - Email composition
+   - CSV recipient upload
+   - Scheduling controls
+   - Scheduled email dashboard
+   - Sent email dashboard
+
+2. **Express + TypeScript backend**
+   - REST APIs
+   - Authentication
+   - PostgreSQL persistence
+   - BullMQ job creation
+   - Email scheduling
+   - Configuration and validation
+
+3. **BullMQ email worker**
+   - Processes scheduled jobs
+   - Connects to Redis
+   - Connects to PostgreSQL
+   - Sends emails through Ethereal SMTP
+   - Updates email status
+   - Handles background email processing independently of the API server
+
+---
+
+# 🎯 Assignment Requirements
+
+The assignment requires a production-oriented email scheduler with:
+
+- TypeScript backend
 - Express.js
-- PostgreSQL
-- TypeORM
-- Redis / Memurai
+- PostgreSQL or MySQL
+- Redis
 - BullMQ
-- Passport.js
-- Nodemailer
-- Winston
-
-## Frontend
-
-- React
-- TypeScript
-- Vite
+- Delayed email jobs
+- Ethereal SMTP
+- Persistent jobs
+- Restart recovery
+- Configurable worker concurrency
+- Minimum delay between emails
+- Hourly email rate limiting
+- Multiple senders
+- Idempotent email processing
+- Google OAuth
+- React/Next.js frontend
 - Tailwind CSS
-- Axios
-- React Router
+- CSV upload
+- Scheduled emails dashboard
+- Sent emails dashboard
 
-## Infrastructure
-
-- PostgreSQL
-- Redis-compatible Memurai on Windows
-- BullMQ
-- Ethereal Email
+The implementation in this repository is structured around these requirements.
 
 ---
 
-# Architecture
+# ✨ Features
+
+## 🔐 Authentication
+
+- Google OAuth 2.0 authentication
+- Passport.js integration
+- User session management
+- Current-user API
+- Logout functionality
+- User name, email and avatar displayed in the frontend
+
+---
+
+## 📧 Email Scheduling
+
+Users can:
+
+- Enter email subject
+- Enter email body
+- Upload recipient CSV
+- Select a start time
+- Configure delay between emails
+- Configure hourly sending limit
+- Schedule the campaign
+
+Each recipient is represented as an individual email job.
+
+---
+
+## 📄 CSV Recipient Upload
+
+The frontend supports uploading a CSV/text file containing email addresses.
+
+The frontend:
+
+1. Reads the uploaded file.
+2. Extracts email addresses.
+3. Validates the detected email addresses.
+4. Displays the number of detected recipients.
+5. Sends the recipient list to the backend when the campaign is scheduled.
+
+Example CSV:
 
 ```text
-                         ┌─────────────────────┐
-                         │    React Frontend   │
-                         │      Port 3000      │
-                         └──────────┬──────────┘
-                                    │
-                                    │ REST API
-                                    ▼
-                         ┌─────────────────────┐
-                         │   Express Backend   │
-                         │      Port 5000      │
-                         └──────┬────────┬─────┘
-                                │        │
-                    ┌───────────┘        └────────────┐
-                    ▼                                ▼
-             ┌─────────────┐                 ┌─────────────┐
-             │ PostgreSQL  │                 │ Redis       │
-             │             │                 │ / Memurai   │
-             └─────────────┘                 └──────┬──────┘
-                                                    │
-                                                    │ BullMQ
-                                                    ▼
-                                            ┌───────────────┐
-                                            │ Email Worker  │
-                                            └───────┬───────┘
-                                                    │
-                                                    │ SMTP
-                                                    ▼
-                                            ┌───────────────┐
-                                            │ Ethereal      │
-                                            │ Email         │
-                                            └───────────────┘
+email
+user1@example.com
+user2@example.com
+user3@example.com
 ```
