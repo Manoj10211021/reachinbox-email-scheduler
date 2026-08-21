@@ -16,6 +16,10 @@ import "reflect-metadata";
 dotenv.config();
 
 const app: Application = express();
+
+// Important when running behind Render's proxy
+app.set("trust proxy", 1);
+
 const PORT = process.env.PORT || 5000;
 
 // Middleware
@@ -29,7 +33,12 @@ app.use(
 );
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+app.use(
+  express.urlencoded({
+    extended: true,
+  }),
+);
 
 // Session configuration
 app.use(
@@ -37,18 +46,17 @@ app.use(
     store: new RedisStore({
       client: redisConnection,
     }),
+
     secret: process.env.SESSION_SECRET || "your-secret-key",
+
     resave: false,
+
     saveUninitialized: false,
 
     cookie: {
       secure: process.env.NODE_ENV === "production",
       httpOnly: true,
-
-      // Required when frontend and backend
-      // are hosted on different domains
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-
       maxAge: parseInt(process.env.SESSION_MAX_AGE || "86400000"),
     },
   }),
@@ -61,25 +69,26 @@ app.use(passport.session());
 // Routes
 app.use("/api", routes);
 
-// Error handler (must be last)
+// Error handler
 app.use(errorHandler);
 
 // Initialize database and start server
 const startServer = async () => {
   try {
-    // Initialize database connection
     await AppDataSource.initialize();
 
     logger.info("✅ Database connected successfully");
 
-    // Start server
     app.listen(PORT, () => {
       logger.info(`🚀 Server running on port ${PORT}`);
-      logger.info(`📧 Email Scheduler API ready`);
+
+      logger.info("📧 Email Scheduler API ready");
+
       logger.info(`Environment: ${process.env.NODE_ENV || "development"}`);
     });
   } catch (error) {
     logger.error("Failed to start server:", error);
+
     process.exit(1);
   }
 };
