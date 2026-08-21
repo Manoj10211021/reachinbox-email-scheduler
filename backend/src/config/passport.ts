@@ -1,8 +1,8 @@
-import passport from 'passport';
-import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
-import { User } from '../models/User';
-import { AppDataSource } from './database';
-import { ObjectId } from 'mongodb';
+import passport from "passport";
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+import { User } from "../models/User";
+import { AppDataSource } from "./database";
+import { ObjectId } from "mongodb";
 
 passport.use(
   new GoogleStrategy(
@@ -14,7 +14,7 @@ passport.use(
     async (accessToken, refreshToken, profile, done) => {
       try {
         const userRepository = AppDataSource.getMongoRepository(User);
-        
+
         // Check if user already exists
         let user = await userRepository.findOne({
           where: { googleId: profile.id },
@@ -24,7 +24,7 @@ passport.use(
           // Create new user
           user = userRepository.create({
             googleId: profile.id,
-            email: profile.emails?.[0]?.value || '',
+            email: profile.emails?.[0]?.value || "",
             name: profile.displayName,
             profilePicture: profile.photos?.[0]?.value,
           });
@@ -35,25 +35,28 @@ passport.use(
       } catch (error) {
         return done(error as Error);
       }
-    }
-  )
+    },
+  ),
 );
 
 passport.serializeUser((user: any, done) => {
-  console.info('[auth] serializing user', { userId: user._id?.toString() });
+  console.info("[auth] serializing user", { userId: user._id?.toString() });
   done(null, user._id.toString());
 });
 
 passport.deserializeUser(async (id: string, done) => {
   try {
     const userRepository = AppDataSource.getMongoRepository(User);
-    const user = await userRepository.findOne({ 
-      where: { _id: new ObjectId(id) } as any 
+    const user = await userRepository.findOne({
+      where: { _id: new ObjectId(id) } as any,
     });
-    console.info('[auth] deserialized user', { userId: id, found: Boolean(user) });
+    console.info("[auth] deserialized user", {
+      userId: id,
+      found: Boolean(user),
+    });
     done(null, user);
   } catch (error) {
-    console.error('[auth] user deserialization failed', { userId: id, error });
+    console.error("[auth] user deserialization failed", { userId: id, error });
     done(error);
   }
 });
